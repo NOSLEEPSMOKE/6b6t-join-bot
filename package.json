@@ -1,0 +1,34 @@
+{
+  "name": "6b6t-join-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "A 6b6t bot to simply join the server.",
+  "main": "6b6t-join.js",
+  "scripts": {
+    "start": "node 6b6t-join.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "mineflayer": "4.38.0",
+    "minecraft-protocol": "1.68.0",
+    "prismarine-chat": "1.13.0",
+    "minecraft-data": "3.115.0",
+    "prismarine-registry": "1.12.0",
+    "protodef": "1.19.0",
+    "prismarine-nbt": "2.8.0",
+    "readable-stream": "4.7.0"
+  },
+  "overrides": {
+    "mineflayer": "4.38.0",
+    "minecraft-protocol": "1.68.0",
+    "prismarine-chat": "1.13.0",
+    "minecraft-data": "3.115.0",
+    "prismarine-registry": "1.12.0",
+    "protodef": "1.19.0",
+    "prismarine-nbt": "2.8.0",
+    "readable-stream": "4.7.0"
+  }
+}
