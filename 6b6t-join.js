@@ -183,21 +183,28 @@ function versionProblems () {
 }
 function installPinned () {
   const pkgFile = path.join(__dirname, 'package.json')
-  if (!fs.existsSync(pkgFile)) {
-    fs.writeFileSync(pkgFile, JSON.stringify({
-      name: '6b6t-join',
+  const pinned = Object.fromEntries(Object.entries(PINNED).sort(([a], [b]) => (a < b ? -1 : 1)))
+  let pkg = null
+  try { pkg = JSON.parse(fs.readFileSync(pkgFile, 'utf8')) } catch (e) {}
+  if (!pkg) {
+    pkg = {
+      name: '6b6t-join-bot',
       private: true,
       type: 'commonjs',
       description: 'Libraries for 6b6t-join.js, pinned to the versions the 6b6t map-art bots run.',
-      dependencies: { ...PINNED },
-      overrides: { ...PINNED }
-    }, null, 2) + '\n')
+      dependencies: pinned,
+      overrides: pinned
+    }
+    fs.writeFileSync(pkgFile, JSON.stringify(pkg, null, 2) + '\n')
   }
-  const spec = Object.entries(PINNED).map(([n, v]) => `${n}@${v}`)
+  // A package.json that already pins everything (the repo's own, or the one
+  // just written) is installed as it is, lockfile included, and left untouched.
+  const declared = Object.entries(PINNED).every(([n, v]) => pkg.dependencies && pkg.dependencies[n] === v)
+  const args = declared
+    ? ['install', '--no-audit', '--no-fund']
+    : ['install', '--no-audit', '--no-fund', '--save-exact', ...Object.entries(pinned).map(([n, v]) => `${n}@${v}`)]
   log('Installing the exact library versions the map-art bots use (first run only, about a minute)...')
-  const r = require('child_process').spawnSync('npm', ['install', '--no-audit', '--no-fund', '--save-exact', ...spec], {
-    cwd: __dirname, stdio: 'inherit', shell: true
-  })
+  const r = require('child_process').spawnSync('npm', args, { cwd: __dirname, stdio: 'inherit', shell: true })
   return !r.error && r.status === 0
 }
 
