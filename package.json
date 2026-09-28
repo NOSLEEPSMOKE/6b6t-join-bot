@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "commonjs",
-  "description": "A 6b6t bot to simply join the server.",
+  "description": "A 6b6t bot to simply join the server with a cracked account.",
   "main": "6b6t-join.js",
   "scripts": {
     "start": "node 6b6t-join.js"
