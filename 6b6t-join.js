@@ -756,6 +756,12 @@ function stopGroundHold (conn) {
 
 // -------------------------------------------------------------- logging in --
 
+// "✦ You're now playing on worker-3, hosted on node-2 in us-east." - sent by the
+// server about 3s after arriving on main, only there. 6b6t sends player chat as
+// server messages too, so it only counts from the start of a line: anything a
+// player says has their name (letters, digits, _) and "»" in front of it.
+const WORKER_LINE = /^[^\w»]*You.re now playing on worker-\d+, hosted on node-\d+/i
+
 function onServerLine (conn, msg, position) {
   const text = cleanText(msg).replace(/\s+$/, '')
   if (!text.trim()) return
@@ -766,7 +772,7 @@ function onServerLine (conn, msg, position) {
   // Before main everything the server says is worth seeing (there are no other
   // players on the login server). After main, only if asked for - except 6b6t's
   // own "now playing on worker-N" line, which is its proof you are on main.
-  const isWorkerLine = position !== 'chat' && /now playing on worker-\d+, hosted on node-\d+/i.test(text)
+  const isWorkerLine = position !== 'chat' && WORKER_LINE.test(text)
   // 6b6t sends player chat as server messages, so chat goes quiet the moment
   // main is detected, not only once it is announced.
   const show = isWorkerLine || ((conn.onMain || conn.mainAnnounced) ? SHOW_CHAT_ON_MAIN : (position !== 'chat' || conn.kind === 'auth'))
@@ -802,15 +808,16 @@ function onServerLine (conn, msg, position) {
     if (/you are now logged in|successfully logged in|logged in successfully|successfully registered|registered successfully/i.test(text)) onAuthed(conn)
   }
 
-  // "✦ You're now playing on worker-3, hosted on node-2 in us-east." - sent by
-  // the server (never player chat) about 3s after arriving on main, only there.
-  if (position !== 'chat' && /now playing on worker-\d+, hosted on node-\d+/i.test(text)) {
+  if (isWorkerLine) {
     conn.workerLine = text.replace(/^[^A-Za-z]+/, '').trim()
     conn.workerLineLogin = conn.playLogins
     if (!conn.onMain && conn.playLogins >= 2) {
       log('6b6t says this is main.', 'cyan')
       stopWalk(conn)
       conn.kind = 'main'
+      // Physics is off on the backup server, and 6b6t can bring the bot from
+      // there to main without a switch that looks like main.
+      if (!conn.bot.physicsEnabled) startGroundHold(conn, 'main')
       onMainLogin(conn) // its settle timer announces
     }
     tryAnnounceMain(conn)
